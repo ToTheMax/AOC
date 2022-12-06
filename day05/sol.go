@@ -7,6 +7,39 @@ import (
 	"strings"
 )
 
+func createStack(lines []string) [][]rune {
+	indexLine := lines[len(lines)-1]
+	stacks := make([][]rune, len(strings.Split(indexLine, "   ")))
+	for index, char := range indexLine {
+		if char != ' ' {
+			stackNumber := int(char - '0')
+			var stack []rune
+			for j := len(lines) - 2; j >= 0; j-- {
+				if lines[j][index] != ' ' {
+					stack = append(stack, rune(lines[j][index]))
+				}
+			}
+			stacks[stackNumber-1] = stack
+		}
+	}
+	return stacks
+}
+
+func moveCrate(stacks [][]rune, amount int, from int, to int) {
+	index := len(stacks[from-1]) - amount
+	crates := stacks[from-1][index:]
+	stacks[to-1] = append(stacks[to-1], crates...)
+	stacks[from-1] = stacks[from-1][:index]
+}
+
+func readStackTops(stacks [][]rune) string {
+	result := ""
+	for _, stack := range stacks {
+		result += string(stack[len(stack)-1])
+	}
+	return result
+}
+
 func main() {
 
 	input, _ := os.ReadFile("in.txt")
@@ -18,57 +51,27 @@ func main() {
 	for lines[lineNumber] != "" {
 		lineNumber++
 	}
-	indexLineNumber := lineNumber - 1
-	indexLine := lines[indexLineNumber]
 
 	// Initialize stacks
-	stacksP1 := make([][]rune, len(strings.Split(indexLine, "   ")))
-	stacksP2 := make([][]rune, len(stacksP1))
-	for index, char := range indexLine {
-		if char != ' ' {
-			stackNumber := int(char - '0')
-			var stack []rune
-			j := indexLineNumber - 1
-			for j >= 0 && lines[j][index] != ' ' {
-				stack = append(stack, rune(lines[j][index]))
-				j--
-			}
-			stacksP1[stackNumber-1] = stack
-			stacksP2[stackNumber-1] = stack
-		}
-	}
+	stacksP1 := createStack(lines[:lineNumber])
+	stacksP2 := createStack(lines[:lineNumber])
 
 	// Read actions
-	for _, line := range lines[indexLineNumber+2:] {
+	for _, line := range lines[lineNumber+1:] {
 		splitted := strings.Split(line, " ")
 		amount, _ := strconv.Atoi(splitted[1])
 		from, _ := strconv.Atoi(splitted[3])
 		to, _ := strconv.Atoi(splitted[5])
 
-		// Move containers
 		// Part 1
 		for i := 0; i < amount; i++ {
-			index := len(stacksP1[from-1]) - 1
-			crates := stacksP1[from-1][index:]
-			stacksP1[to-1] = append(stacksP1[to-1], crates...)
-			stacksP1[from-1] = stacksP1[from-1][:index]
+			moveCrate(stacksP1, 1, from, to)
 		}
 		// Part 2
-		index := len(stacksP2[from-1]) - amount
-		crates := stacksP2[from-1][index:]
-		stacksP2[to-1] = append(stacksP2[to-1], crates...)
-		stacksP2[from-1] = stacksP2[from-1][:index]
+		moveCrate(stacksP2, amount, from, to)
 	}
 
 	// Print top of stacks
-	fmt.Print("Sol1: ")
-	for _, stack := range stacksP1 {
-		fmt.Print(string(stack[len(stack)-1]))
-	}
-	fmt.Print("\n")
-	fmt.Print("Sol2: ")
-	for _, stack := range stacksP2 {
-		fmt.Print(string(stack[len(stack)-1]))
-	}
-	fmt.Print("\n")
+	fmt.Println("Sol1: ", readStackTops(stacksP1))
+	fmt.Println("Sol1: ", readStackTops(stacksP2))
 }
