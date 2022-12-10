@@ -8,23 +8,35 @@ import (
 )
 
 type Tree struct {
-	// id     int
-	height int
-	seen   bool
+	height      int
+	seen        bool
+	scenicScore int
 }
 
-func reverse(trees []*Tree) []*Tree {
-	for i := 0; i < len(trees)/2; i++ {
+func reverseTree(trees []*Tree) []*Tree {
+	reversed := make([]*Tree, len(trees))
+	for i := 0; i < len(trees); i++ {
 		j := len(trees) - i - 1
-		trees[i], trees[j] = trees[j], trees[i]
+		reversed[i] = trees[j]
 	}
-	return trees
+	return reversed
 }
 
-func checkLine(treeLine []*Tree) int {
+func scoreTree(tree *Tree, neighbours []*Tree) int {
+	viewingDistance := 0
+	for _, neighbourTree := range neighbours {
+		viewingDistance += 1
+		if neighbourTree.height >= tree.height {
+			break
+		}
+	}
+	return viewingDistance
+}
+
+func scoreTreeLine(treeLine []*Tree) int {
 	score := 0
 	maxHeight := -1
-	for _, tree := range treeLine {
+	for i, tree := range treeLine {
 		if tree.height > maxHeight {
 			maxHeight = tree.height
 			if !tree.seen {
@@ -32,6 +44,7 @@ func checkLine(treeLine []*Tree) int {
 				score += 1
 			}
 		}
+		tree.scenicScore *= scoreTree(tree, reverseTree(treeLine[:i]))
 	}
 	return score
 }
@@ -50,8 +63,9 @@ func main() {
 		for x, char := range line {
 			n, _ := strconv.Atoi(string(char))
 			tree := &Tree{
-				height: n,
-				seen:   false,
+				height:      n,
+				seen:        false,
+				scenicScore: 1,
 			}
 			horzTreeline[x] = tree
 		}
@@ -68,14 +82,26 @@ func main() {
 		vertTreeLines = append(vertTreeLines, vertTreeLine)
 	}
 
+	// Merge treelines
 	var treeLines [][]*Tree
 	treeLines = append(treeLines, horzTreeLines...)
 	treeLines = append(treeLines, vertTreeLines...)
 
+	// Part 1
 	score := 0
 	for _, treeLine := range treeLines {
-		score += checkLine(treeLine) + checkLine(reverse(treeLine))
+		score += scoreTreeLine(treeLine) + scoreTreeLine(reverseTree(treeLine))
 	}
 	fmt.Println("Sol1:", score)
 
+	// Part 2
+	maxScenicScore := 0
+	for _, treeLine := range horzTreeLines {
+		for _, tree := range treeLine {
+			if tree.scenicScore > maxScenicScore {
+				maxScenicScore = tree.scenicScore
+			}
+		}
+	}
+	fmt.Println("Sol2:", maxScenicScore)
 }
