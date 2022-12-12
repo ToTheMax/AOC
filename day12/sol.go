@@ -33,36 +33,28 @@ func getNeighborPositions(grid Grid, curPos int) []int {
 	return neighborPositions
 }
 
-func BFS(grid Grid, start int, goal int) int {
-
-	queue := []int{start}
-	visited := make(map[int]int)
-
+func BFS(grid Grid, source int, sink int) map[int]int {
+	distances := make(map[int]int)
+	queue := []int{source}
 	curPos := 0
 	for len(queue) > 0 {
 		// Check if goal is reached
 		curPos = queue[0]
-		if curPos == goal {
-			// Traverse path length
-			pathLength := 0
-			for curPos != start {
-				curPos = visited[curPos]
-				pathLength++
-			}
-			return pathLength
+		if curPos == sink {
+			break
 		}
 		// Add neighbors to queue
 		for _, newPos := range getNeighborPositions(grid, curPos) {
-			if _, exists := visited[newPos]; !exists {
-				if grid.heights[newPos]-1 <= grid.heights[curPos] {
-					visited[newPos] = curPos
+			if _, exists := distances[newPos]; !exists {
+				if grid.heights[newPos]+1 >= grid.heights[curPos] {
+					distances[newPos] = distances[curPos] + 1
 					queue = append(queue, newPos)
 				}
 			}
 		}
 		queue = queue[1:]
 	}
-	return -1
+	return distances
 }
 
 func main() {
@@ -70,6 +62,7 @@ func main() {
 
 	lines := strings.Split(string(input), "\n")
 	heights := make([]int, len(lines)*len(lines[0]))
+	grid := Grid{heights, len(lines), len(lines[0])}
 
 	// Fill grid
 	startPos := 0
@@ -88,17 +81,17 @@ func main() {
 			heights[x+len(lines[0])*y] = int(char) - int('a')
 		}
 	}
-	grid := Grid{heights, len(lines), len(lines[0])}
 
-	distance := BFS(grid, startPos, goalPos)
-	fmt.Println("Sol1:", distance)
+	// Calculate shortest paths
+	distances := BFS(grid, goalPos, startPos)
 
-	shortest := distance
+	fmt.Println("Sol1:", distances[startPos])
+
+	shortest := distances[startPos]
 	for pos, height := range grid.heights {
 		if height == 0 {
-			distance = BFS(grid, pos, goalPos)
-			if distance > 0 && distance < shortest {
-				shortest = distance
+			if distances[pos] > 0 && distances[pos] < shortest {
+				shortest = distances[pos]
 			}
 		}
 	}
