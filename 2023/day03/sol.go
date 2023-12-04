@@ -87,10 +87,7 @@ func main() {
 					}
 				}
 				number, _ := strconv.Atoi(scheme.schematic[i][from : to+1])
-				// fmt.Println("\tRow", i, "From", from, "To", to)
-				// fmt.Println("\tFound number", string(scheme.schematic[i][from:to]))
 				if checkAdjacent(scheme, i, from, to, number) {
-					// fmt.Println("\tFound number:", number)
 					sumParts += number
 				}
 				j += to - from
@@ -102,7 +99,6 @@ func main() {
 	sumGears := 0
 	for _, gear := range scheme.gears {
 		if gear.count == 2 {
-			// fmt.Println(gear.ratio)
 			sumGears += gear.ratio
 		}
 	}
