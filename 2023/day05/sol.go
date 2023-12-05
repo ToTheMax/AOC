@@ -71,7 +71,6 @@ func main() {
 
 	seeds := stringToInts(lines[0][7:])
 	seedRanges := stringToRanges(lines[0][7:])
-	fmt.Println(seedRanges)
 
 	maps := []Map{}
 	for i := 2; i < len(lines); i++ {
@@ -94,8 +93,6 @@ func main() {
 		location := seedToLocation(seed, maps)
 		if location < min {
 			min = location
-			fmt.Println("Location", location, "via seed", seed)
-			fmt.Println("Location", location, "via seed", locationToSeed(location, maps))
 		}
 	}
 	fmt.Println("Sol 1:", min)
