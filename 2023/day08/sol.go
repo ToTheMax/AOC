@@ -30,6 +30,25 @@ func calcSteps(network map[string]Node, instructs string, from string, to string
 	return steps
 }
 
+func gcd(a, b int) int {
+	for b != 0 {
+		a, b = b, a%b
+	}
+	return a
+}
+
+func lcm(a, b int) int {
+	return (a / gcd(a, b)) * b
+}
+
+func lcmOfList(nums []int) int {
+	lcmResult := nums[0]
+	for _, num := range nums[1:] {
+		lcmResult = lcm(lcmResult, num)
+	}
+	return lcmResult
+}
+
 func main() {
 
 	input, _ := os.ReadFile("in.txt")
@@ -49,23 +68,25 @@ func main() {
 	fmt.Println("Sol 1:", calcSteps(network, instructions, "AAA", "ZZZ"))
 
 	// Find steps **A -> **Z
-	// startNodes := []Node{}
-	// endNodes := []Node{}
-	// for _, node := range network {
-	// 	if node.name[2] == 'A' {
-	// 		startNodes = append(startNodes, node)
-	// 	} else if node.name[2] == 'Z' {
-	// 		endNodes = append(endNodes, node)
-	// 	}
-	// }
-	// fmt.Println(len(startNodes), len(endNodes))
-	// freqs := make([][]int, len(startNodes))
-	// for s, startNodes := range startNodes {
-	// 	freqs[s] = make([]int, len(endNodes))
-	// 	for e, endNodes := range endNodes {
-	// 		freqs[s][e] = calcSteps(network, instructions, startNodes.name, endNodes.name)
-	// 	}
-	// }
-	fmt.Println("Sol 2:")
+	startNodes := []Node{}
+	endNodes := []Node{}
+	for _, node := range network {
+		if node.name[2] == 'A' {
+			startNodes = append(startNodes, node)
+		} else if node.name[2] == 'Z' {
+			endNodes = append(endNodes, node)
+		}
+	}
+	rates := make([]int, len(startNodes))
+	for s, startNodes := range startNodes {
+		for _, endNodes := range endNodes {
+			rate := calcSteps(network, instructions, startNodes.name, endNodes.name)
+			if rate > 0 {
+				rates[s] = rate
+				break
+			}
+		}
+	}
+	fmt.Println("Sol 2:", lcmOfList(rates))
 
 }
