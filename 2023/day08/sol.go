@@ -22,6 +22,7 @@ func calcSteps(network map[string]Node, instructs string, from string, to string
 			curNode = network[curNode.left]
 		}
 		steps++
+		// Cycle
 		if steps > 100000 {
 			return -1
 		}
@@ -37,14 +38,10 @@ func gcd(a, b int) int {
 	return a
 }
 
-func lcm(a, b int) int {
-	return (a / gcd(a, b)) * b
-}
-
 func lcmOfList(nums []int) int {
 	lcmResult := nums[0]
 	for _, num := range nums[1:] {
-		lcmResult = lcm(lcmResult, num)
+		lcmResult = (lcmResult / gcd(lcmResult, num)) * num 
 	}
 	return lcmResult
 }
@@ -68,25 +65,16 @@ func main() {
 	fmt.Println("Sol 1:", calcSteps(network, instructions, "AAA", "ZZZ"))
 
 	// Find steps **A -> **Z
-	startNodes := []Node{}
-	endNodes := []Node{}
-	for _, node := range network {
-		if node.name[2] == 'A' {
-			startNodes = append(startNodes, node)
-		} else if node.name[2] == 'Z' {
-			endNodes = append(endNodes, node)
-		}
-	}
-	rates := make([]int, len(startNodes))
-	for s, startNodes := range startNodes {
-		for _, endNodes := range endNodes {
-			rate := calcSteps(network, instructions, startNodes.name, endNodes.name)
-			if rate > 0 {
-				rates[s] = rate
-				break
+	rates := []int{}
+	for _, n1 := range network {
+		for _, n2 := range network {
+			if n1.name[2] == 'A' && n2.name[2] == 'Z'{
+				rate := calcSteps(network, instructions, n1.name, n2.name)
+				if rate > 0 {
+					rates = append(rates, rate)
+				}
 			}
 		}
 	}
 	fmt.Println("Sol 2:", lcmOfList(rates))
-
 }
