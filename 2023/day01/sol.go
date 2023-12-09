@@ -9,15 +9,24 @@ import (
 func replace(text string, level int) string {
 	digitstrings := ""
 	if level == 2 {
-		text = strings.ReplaceAll(text, "one", "1")
-		text = strings.ReplaceAll(text, "two", "2")
-		text = strings.ReplaceAll(text, "three", "3")
-		text = strings.ReplaceAll(text, "four", "4")
-		text = strings.ReplaceAll(text, "five", "5")
-		text = strings.ReplaceAll(text, "six", "6")
-		text = strings.ReplaceAll(text, "seven", "7")
-		text = strings.ReplaceAll(text, "eight", "8")
-		text = strings.ReplaceAll(text, "nine", "9")
+		for i := range text {
+			mappings := map[string]string{
+				"one": "1",
+				"two": "2",
+				"three": "3",
+				"four": "4",
+				"five": "5",
+				"six": "6",
+				"seven": "7",
+				"eight": "8",
+				"nine": "9",
+			}
+			for from, to := range mappings {
+				if i+len(from) <= len(text) && text[i:i+len(from)] == from {
+					text = text[:i] + to + text[i+3:]
+				}
+			}
+		}
 	}
 
 	for _, char := range text {
