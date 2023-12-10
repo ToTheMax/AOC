@@ -22,48 +22,28 @@ type Pos struct {
 	y int
 }
 
-func findMove(grid Grid, prevMove Move, curPos Pos) Move {
-	x := curPos.x
-	y := curPos.y
-
-	if grid.g[y][x] == "F" {
-		if prevMove.dy == -1 {
-			return Move{1, 0}
-		} else {
-			return Move{0, 1}
-		}
-	} else if grid.g[y][x] == "7" {
-		if prevMove.dy == -1 {
-			return Move{-1, 0}
-		} else {
-			return Move{0, 1}
-		}
-	} else if grid.g[y][x] == "L" {
-		if prevMove.dy == 1 {
-			return Move{1, 0}
-		} else {
-			return Move{0, -1}
-		}
-	} else if grid.g[y][x] == "J" {
-		if prevMove.dy == 1 {
-			return Move{-1, 0}
-		} else {
-			return Move{0, -1}
-		}
-	} else if grid.g[y][x] == "|" {
-		if prevMove.dy == 1 {
-			return Move{0, 1}
-		} else {
-			return Move{0, -1}
-		}
-	} else if grid.g[y][x] == "-" {
-		if prevMove.dx == 1 {
-			return Move{1, 0}
-		} else {
-			return Move{-1, 0}
-		}
+func abs(x int) int {
+	if x < 0 {
+		return -x
 	}
-	return Move{0, 0}
+	return x
+}
+
+func findMove(prevMove Move, tile string) Move {
+	// Mapping of prevMove to nextMove
+	mapping := map[string][]Move{
+		"F": {{1, 0}, {0, 1}},
+		"7": {{-1, 0}, {0, 1}},
+		"L": {{1, 0}, {0, -1}},
+		"J": {{-1, 0}, {0, -1}},
+	}
+	if _, ok := mapping[tile]; ok {
+		return mapping[tile][abs(prevMove.dx)]
+	} else if strings.Index("|-", tile) != -1{
+		return Move{prevMove.dx, prevMove.dy}
+	} else{
+		return Move{0, 0}
+	}
 }
 
 func main() {
@@ -72,6 +52,7 @@ func main() {
 	n := len(lines)
 	m := len(lines[0])
 
+	// Read grid
 	grid := Grid{make([][]string, n), n, m}
 	startPos := Pos{0, 0}
 	for i := range grid.g {
@@ -84,32 +65,46 @@ func main() {
 		}
 	}
 
-	// First Move
+	// Starting Move
 	curPos := startPos
 	var startMove Move
-	fmt.Println(grid)
 	for _, move := range []Move{{0, 1}, {1, 0}, {-1, 0}, {0, -1}} {
 		checkPos := Pos{curPos.x + move.dx, curPos.y + move.dy}
-		x := findMove(grid, move, checkPos)
-		if x.dx != 0 || x.dy != 0 {
+		checkMove := findMove(move, grid.g[checkPos.y][checkPos.x])
+		if checkMove.dx != 0 || checkMove.dy != 0 {
 			startMove = move
 			curPos = checkPos
 			break
 		}
 	}
-	fmt.Println("Starting", curPos, startMove)
 
 	// Follow path
 	prevMove := startMove
 	steps := 1
+	visited := map[Pos]bool{startPos:true, curPos:true}
 	for curPos != startPos {
-		// fmt.Println("Pos:", curPos, "Move:", prevMove)
-		prevMove = findMove(grid, prevMove, curPos)
-		curPos.x += prevMove.dx
-		curPos.y += prevMove.dy
+		prevMove = findMove(prevMove, grid.g[curPos.y][curPos.x])
+		curPos = Pos{curPos.x + prevMove.dx, curPos.y + prevMove.dy}
+		visited[curPos] = true
 		steps++
 	}
 
 	fmt.Println("Sol 1:", steps/2)
-	fmt.Println("Sol 2:", 0)
+
+	// Find enclosed tiles
+	totalCount := 0
+	for y := range grid.g {
+		count := 0
+		for x := range grid.g[y] {
+			t := grid.g[y][x]
+			if strings.Index("|JL", t) != -1 && visited[Pos{x, y}] {
+				count++
+			}
+			if count%2 == 1 && !visited[Pos{x, y}] {
+				totalCount++
+			}
+		
+		}
+	}
+	fmt.Println("Sol 2:", totalCount)
 }
