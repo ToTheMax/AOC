@@ -18,14 +18,21 @@ func stringToInts(s string) []int {
 }
 
 
-func findCombinations(conditions string, cIndex int, groups []int, gIndex int) int {
+func fillCache(n, m int) [][]int {
+	var cache [][]int
+	for i := 0; i <= n; i++ {
+		cache = append(cache, make([]int, m))
+		for j := 0; j < m; j++ {
+			cache[i][j] = -1
+		}
+	}
+	return cache
+}
+
+
+func findCombinations(conditions string, cIndex int, groups []int, gIndex int, cache [][]int) int {
 
 	combs := 0
-
-	if cIndex > len(conditions) && gIndex +1 < len(groups){
-		return 0
-	}
-	
 	if gIndex >= len(groups) {
 		if cIndex < len(conditions) && strings.Contains(conditions[cIndex:], "#"){
 			return 0
@@ -34,19 +41,21 @@ func findCombinations(conditions string, cIndex int, groups []int, gIndex int) i
 		}
 	}
 
-	group := groups[gIndex]
+	if cache[cIndex][gIndex] != -1 {
+		return cache[cIndex][gIndex]
+	}
 
-	// Check how many conditions left
+	// Check if groups fit in remaining conditions
+	group := groups[gIndex]
 	groupSum := 0
 	for i:=gIndex; i < len(groups); i++{
 		groupSum += groups[i]
 	}
-
 	if cIndex + groupSum > len(conditions){
 		return 0
 	}
 
-	// Check if group fits in next sequence
+	// Check if next group fits in next sequence
 	foundFit := true
 	if cIndex-1 >= 0  && conditions[cIndex-1] == '#' {
 		foundFit = false
@@ -59,46 +68,41 @@ func findCombinations(conditions string, cIndex int, groups []int, gIndex int) i
 	if cIndex+group < len(conditions) && conditions[cIndex+group] == '#' {
 		foundFit = false
 	}
-
 	if foundFit {
-		combs += findCombinations(conditions, cIndex + group+1, groups, gIndex+1)
+		combs += findCombinations(conditions, cIndex + group+1, groups, gIndex+1, cache)
 	}
-
 	if conditions[cIndex] != '#' {
-		return combs + findCombinations(conditions, cIndex+1, groups, gIndex)
+		combs += findCombinations(conditions, cIndex+1, groups, gIndex, cache)
 	}
+	cache[cIndex][gIndex] = combs
 	return combs
 }
 
 func main() {
-
-	// Read input
 	input, _ := os.ReadFile("in.txt")
 	lines := strings.Split(string(input), "\n")
 
 	sumP1 := 0
 	sumP2 := 0
+	
 	for _, line := range lines {
 		splitted_line := strings.Split(line, " ")
+		
+		// Part 1
 		conditions := splitted_line[0]
 		groups := stringToInts(splitted_line[1])
-		combs := findCombinations(conditions, 0, groups, 0)
+		combs := findCombinations(conditions, 0, groups, 0, fillCache(len(conditions), len(groups)))
 		sumP1 += combs
-	}
-	fmt.Println("Sol 1:", sumP1)
 
-	for _, line := range lines{
-		splitted_line := strings.Split(line, " ")
-		conditions := splitted_line[0]
-		groups := stringToInts(splitted_line[1])
+		// Part 2
 		conditions = strings.Repeat(conditions + "?", 5)
 		conditions = conditions[:len(conditions)-1]
 		mgroups := append(groups, groups...)
 		mgroups = append(mgroups, mgroups...)
 		mgroups = append(mgroups, groups...)
-		combs := findCombinations(conditions, 0, mgroups, 0)
+		combs = findCombinations(conditions, 0, mgroups, 0, fillCache(len(conditions), len(mgroups)))
 		sumP2 += combs
 	}
-
+	fmt.Println("Sol 1:", sumP1)
 	fmt.Println("Sol 2:", sumP2)
 }
