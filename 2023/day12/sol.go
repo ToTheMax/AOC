@@ -18,62 +18,54 @@ func stringToInts(s string) []int {
 }
 
 
-func findCombinations(conditions string, index int, groups []int) int{
+func findCombinations(conditions string, cIndex int, groups []int, gIndex int) int {
 
 	combs := 0
 
-	if len(groups) == 0 {
-		fitted := strings.ReplaceAll(string(conditions), "?", ".")
-		if index < len(conditions) && strings.Contains(conditions[index:], "#"){
+	if cIndex > len(conditions) && gIndex +1 < len(groups){
+		return 0
+	}
+	
+	if gIndex >= len(groups) {
+		if cIndex < len(conditions) && strings.Contains(conditions[cIndex:], "#"){
 			return 0
 		} else{
-			fmt.Println("Found fit", fitted)
 			return 1
 		}
 	}
 
-	group := groups[0]
+	group := groups[gIndex]
 
 	// Check how many conditions left
-	// This can be optimized (sum of groups + cnt)
-	if index + group > len(conditions){
+	groupSum := 0
+	for i:=gIndex; i < len(groups); i++{
+		groupSum += groups[i]
+	}
+
+	if cIndex + groupSum > len(conditions){
 		return 0
 	}
 
 	// Check if group fits in next sequence
 	foundFit := true
-	if index-1 >= 0  && conditions[index-1] == '#' {
+	if cIndex-1 >= 0  && conditions[cIndex-1] == '#' {
 		foundFit = false
 	}
 	for i:=0; i < group; i++{
-		if conditions[index+i] == '.' {
+		if conditions[cIndex+i] == '.' {
 			foundFit = false
 		}
 	}
-	if index+group < len(conditions) && conditions[index+group] == '#' {
+	if cIndex+group < len(conditions) && conditions[cIndex+group] == '#' {
 		foundFit = false
 	}
 
 	if foundFit {
-		newConditions := make([]byte, len(conditions))
-		copy(newConditions, conditions)
-		for i:=0; i<group; i++{
-			newConditions[index+i] = '#'
-		}
-
-		if index+group < len(conditions){
-			newConditions[index+group] = '.'
-		}
-		combs += findCombinations(string(newConditions), index + group+1, groups[1:])
+		combs += findCombinations(conditions, cIndex + group+1, groups, gIndex+1)
 	}
 
-	if conditions[index] == '?' {
-		conditionsBytes := []byte(conditions)
-		conditionsBytes[index] = '.'
-		conditions = string(conditionsBytes)
-	}
-	if conditions[index] != '#' {
-		return combs + findCombinations(conditions, index+1, groups)
+	if conditions[cIndex] != '#' {
+		return combs + findCombinations(conditions, cIndex+1, groups, gIndex)
 	}
 	return combs
 }
@@ -84,20 +76,29 @@ func main() {
 	input, _ := os.ReadFile("in.txt")
 	lines := strings.Split(string(input), "\n")
 
-	sumCombs := 0
-	for i, line := range lines {
+	sumP1 := 0
+	sumP2 := 0
+	for _, line := range lines {
 		splitted_line := strings.Split(line, " ")
 		conditions := splitted_line[0]
 		groups := stringToInts(splitted_line[1])
-		combs := findCombinations(conditions, 0, groups)
-		fmt.Println("Line", i, ":", combs)
-		sumCombs += combs
+		combs := findCombinations(conditions, 0, groups, 0)
+		sumP1 += combs
+	}
+	fmt.Println("Sol 1:", sumP1)
+
+	for _, line := range lines{
+		splitted_line := strings.Split(line, " ")
+		conditions := splitted_line[0]
+		groups := stringToInts(splitted_line[1])
+		conditions = strings.Repeat(conditions + "?", 5)
+		conditions = conditions[:len(conditions)-1]
+		mgroups := append(groups, groups...)
+		mgroups = append(mgroups, mgroups...)
+		mgroups = append(mgroups, groups...)
+		combs := findCombinations(conditions, 0, mgroups, 0)
+		sumP2 += combs
 	}
 
-
-	// 6871
-	// 2043098029844
-
-	fmt.Println("Sol 1:", sumCombs) // 8376 too high
-	fmt.Println("Sol 2:", 0)
+	fmt.Println("Sol 2:", sumP2)
 }
