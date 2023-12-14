@@ -6,56 +6,95 @@ import (
 	"strings"
 )
 
-func tilt(rows []string, cycles int) int {
+func tilt(platform []string, fullCycle bool) ([]string, int) {
 
-	n := len(rows)
-	m := len(rows[0])
+	n := len(platform)
+	m := len(platform[0])
 
-	// New cucle
-	newCycle := make([]string, n)
-	for i := 0; i < n; i++ {
-		newCycle[i] = strings.Repeat(".", m)
+	tilts := 1
+	if fullCycle {
+		tilts = 4
 	}
 
 	score := 0
-	for x := 0; x < m; x++ {
-		top := m
-		for y := 0; y < n; y++ {
-			if rows[y][x] == '#' {
-				top = m - (y + 1)
-				// newLines[y] = newLines[y][:x] + "#" + newLines[y][x+1:]
-				// newCycle[x] = newCycle[x][:y] + "#" + newCycle[x][y+1:]
-				newCycle[x] = newCycle[x][:m-y-1] + "#" + newCycle[x][m-y:]
-				continue
-			} else if rows[y][x] == 'O' {
-				score += top
-				top = top - 1
-				// newLines[m-top-1] = newLines[m-top-1][:x] + "O" + newLines[m-top-1][x+1:]
-				// newCycle[x] = newCycle[x][:m-top-1] + "O" + newCycle[x][m-top:]
-				newCycle[x] = newCycle[x][:top] + "O" + newCycle[x][top+1:]
+	newPlatform := make([]string, n)
+	for t := 0; t < tilts; t++ {
+		// New cycle
+		score = 0
+		newPlatform = make([]string, n)
+		for i := 0; i < n; i++ {
+			newPlatform[i] = strings.Repeat(".", m)
+		}
+		for x := 0; x < m; x++ {
+			top := m
+			for y := 0; y < n; y++ {
+				if platform[y][x] == '#' {
+					top = m - (y + 1)
+					newPlatform[x] = newPlatform[x][:m-y-1] + "#" + newPlatform[x][m-y:]
+					continue
+				} else if platform[y][x] == 'O' {
+					score += top
+					top = top - 1
+					newPlatform[x] = newPlatform[x][:top] + "O" + newPlatform[x][top+1:]
+				}
 			}
 		}
+		platform = newPlatform
 	}
-	if cycles > 0 {
-		if newCycle[0] == rows[0] {
-			return score
+	return newPlatform, score
+}
+
+func getScore(platform []string) int {
+	score := 0
+	for i, row := range platform {
+		for _, c := range row {
+			if c == 'O' {
+				score += len(row) - i
+			}
 		}
-		// for _, line := range newCycle {
-		// 	fmt.Println(line)
-		// }
-		// fmt.Println()
-		return tilt(newCycle, cycles-1)
 	}
 	return score
 }
 
 func main() {
 	input, _ := os.ReadFile("in.txt")
-	lines := strings.Split(string(input), "\n")
+	platform := strings.Split(string(input), "\n")
 
-	fmt.Println("Sol 1:", tilt(lines, 0))
+	// Part 1
+	_, solP1 := tilt(platform, false)
+	fmt.Println("Sol 1:", solP1)
 
-	// 129
-	// 110
-	fmt.Println("Sol 2:", tilt(lines, 4*1000000000))
+	// Part 2
+	cycles := 100000
+
+	// Find pattern
+	patternStart, patternSize := 0, 0
+	seenPlatforms := make(map[string]int)
+	for c := 0; c < cycles; c++ {
+		platform, _ = tilt(platform, true)
+		platform_str := strings.Join(platform, "")
+		if c2, ok := seenPlatforms[platform_str]; ok {
+			patternStart = c2 + 1
+			patternSize = c - c2
+			break
+		} else {
+			seenPlatforms[platform_str] = c
+		}
+	}
+
+	// Find diffs
+	diffs := make([]int, patternSize)
+	scoreP2 := getScore(platform)
+	score, prevScore := 0, scoreP2
+	for i := 0; i < patternSize; i++ {
+		platform, score = tilt(platform, true)
+		score = getScore(platform)
+		diffs[i] = score - prevScore
+		prevScore = score
+	}
+	for d := 0; d < (cycles-patternStart)%len(diffs); d++ {
+		scoreP2 += diffs[d]
+	}
+
+	fmt.Println("Sol 2:", scoreP2)
 }
