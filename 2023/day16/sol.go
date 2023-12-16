@@ -28,61 +28,61 @@ func max(a int, b int) int {
 }
 
 func nextState(state State) State {
-	if state.direction=='N' {
-		return State{state.x, state.y-1, state.direction}
-	} else if state.direction=='E' {
-		return State{state.x+1, state.y, state.direction}
-	} else if state.direction=='S' {
-		return State{state.x, state.y+1, state.direction}
-	} else{
-		return State{state.x-1, state.y, state.direction}
+	switch state.direction {
+	case 'N':
+		return State{state.x, state.y - 1, state.direction}
+	case 'E':
+		return State{state.x + 1, state.y, state.direction}
+	case 'S':
+		return State{state.x, state.y + 1, state.direction}
+	default:
+		return State{state.x - 1, state.y, state.direction}
 	}
 }
 
 func move(grid Grid, state State) {
-	if state.x < 0 || state.x >= grid.m || state.y < 0 || state.y >= grid.n {
+	if state.x < 0 || state.x >= grid.m || state.y < 0 || state.y >= grid.n || grid.seen[state] {
 		return
 	}
-	if _, ok := grid.seen[state]; ok {
-		return
-	}
-	grid.seen[state] = true	
-	grid.energized[state.x + state.y*grid.m] = true
-	if grid.g[state.y][state.x] == "." {
+	grid.seen[state] = true
+	grid.energized[state.x+state.y*grid.m] = true
+
+	switch grid.g[state.y][state.x] {
+	case ".":
 		move(grid, nextState(state))
-	} else if grid.g[state.y][state.x] == "|" {
-		if state.direction=='N' || state.direction=='S' {
+	case "|":
+		if state.direction == 'N' || state.direction == 'S' {
 			move(grid, nextState(state))
 		} else {
-			move(grid, State{state.x, state.y-1, 'N'})
-			move(grid, State{state.x, state.y+1, 'S'})
+			move(grid, State{state.x, state.y - 1, 'N'})
+			move(grid, State{state.x, state.y + 1, 'S'})
 		}
-	} else if grid.g[state.y][state.x] == "-" {
-		if state.direction=='E' || state.direction=='W' {
+	case "-":
+		if state.direction == 'E' || state.direction == 'W' {
 			move(grid, nextState(state))
 		} else {
-			move(grid, State{state.x-1, state.y, 'W'})
-			move(grid, State{state.x+1, state.y, 'E'})
+			move(grid, State{state.x - 1, state.y, 'W'})
+			move(grid, State{state.x + 1, state.y, 'E'})
 		}
-	} else if grid.g[state.y][state.x] == "/" {
-		if state.direction=='N' {
-			move(grid, State{state.x+1, state.y, 'E'})
-		} else if state.direction=='E' {
-			move(grid, State{state.x, state.y-1, 'N'})
-		} else if state.direction=='S' {
-			move(grid, State{state.x-1, state.y, 'W'})
+	case "/":
+		if state.direction == 'N' {
+			move(grid, State{state.x + 1, state.y, 'E'})
+		} else if state.direction == 'E' {
+			move(grid, State{state.x, state.y - 1, 'N'})
+		} else if state.direction == 'S' {
+			move(grid, State{state.x - 1, state.y, 'W'})
 		} else {
-			move(grid, State{state.x, state.y+1, 'S'})
+			move(grid, State{state.x, state.y + 1, 'S'})
 		}
-	} else if grid.g[state.y][state.x] == "\\" {
-		if state.direction=='N' {
-			move(grid, State{state.x-1, state.y, 'W'})
-		} else if state.direction=='E' {
-			move(grid, State{state.x, state.y+1, 'S'})
-		} else if state.direction=='S' {
-			move(grid, State{state.x+1, state.y, 'E'})
+	case "\\":
+		if state.direction == 'N' {
+			move(grid, State{state.x - 1, state.y, 'W'})
+		} else if state.direction == 'E' {
+			move(grid, State{state.x, state.y + 1, 'S'})
+		} else if state.direction == 'S' {
+			move(grid, State{state.x + 1, state.y, 'E'})
 		} else {
-			move(grid, State{state.x, state.y-1, 'N'})
+			move(grid, State{state.x, state.y - 1, 'N'})
 		}
 	}
 }
@@ -91,7 +91,6 @@ func getScore(grid Grid, startState State) int {
 	grid = Grid{grid.g, grid.n, grid.m, make(map[int]bool), make(map[State]bool)}
 	move(grid, startState)
 	return len(grid.energized)
-
 }
 
 func main() {
@@ -111,12 +110,10 @@ func main() {
 
 	// Part 1
 	move(grid, State{0, 0, 'E'})
-	solP1 := len(grid.energized)
 	fmt.Println("Sol 1:", getScore(grid, State{0, 0, 'E'}))
 	
-	
 	// Part 2
-	solP2 := solP1
+	solP2 := 0
 	for i := 0; i < grid.m; i++ {
 		solP2 = max(solP2, getScore(grid, State{i, 0, 'S'}))
 		solP2 = max(solP2, getScore(grid, State{i, n-1, 'N'}))
