@@ -19,11 +19,20 @@ func abs(x int) int {
 	return x
 }
 
+func max(a int, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 func calcArea(turningPos []Pos) int {
 	area := 0
 	for i := 0; i < len(turningPos); i++ {
-		pointA, pointB := turningPos[i], turningPos[(i+1)%(len(turningPos))]
-		area += (pointA.x * pointB.y) - (pointB.x * pointA.y) + max(abs(pointA.x-pointB.x), abs(pointA.y-pointB.y))
+		pointA := turningPos[i]
+		pointB := turningPos[(i+1)%(len(turningPos))]
+		area += (pointA.x * pointB.y) - (pointB.x * pointA.y) 
+		area += max(abs(pointA.x-pointB.x), abs(pointA.y-pointB.y))
 	}
 	return area / 2
 }
