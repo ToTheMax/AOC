@@ -7,65 +7,71 @@ import (
 	"strings"
 )
 
-type Grid struct {
-	lava   []int
-	height int
-	width  int
-}
-
 type Pos struct {
 	x int
 	y int
 }
 
-func fill(grid map[Pos]string, pos Pos) {
-	grid[pos] = ""
-	surrounedPos := []Pos{
-		{pos.x, pos.y + 1},
-		{pos.x, pos.y - 1},
-		{pos.x + 1, pos.y},
-		{pos.x - 1, pos.y},
+func abs(x int) int {
+	if x < 0 {
+		return -x
 	}
-	for _, newPos := range surrounedPos {
-		if _, ok := grid[newPos]; !ok {
-			fill(grid, newPos)
-		}
+	return x
+}
+
+func calcArea(turningPos []Pos) int {
+	area := 0
+	for i := 0; i < len(turningPos); i++ {
+		pointA, pointB := turningPos[i], turningPos[(i+1)%(len(turningPos))]
+		area += (pointA.x * pointB.y) - (pointB.x * pointA.y) + max(abs(pointA.x-pointB.x), abs(pointA.y-pointB.y))
 	}
+	return area / 2
 }
 
 func main() {
 	input, _ := os.ReadFile("in.txt")
 
-	// Part 1
+	// Preprocess
 	lines := strings.Split(string(input), "\n")
-	grid := map[Pos]string{}
-	curPos := Pos{0, 0}
+	curPos1 := Pos{0, 0}
+	curPos2 := Pos{0, 0}
+	turningPos1 := []Pos{{0, 0}}
+	turningPos2 := []Pos{{0, 0}}
 	for _, line := range lines {
 		split := strings.Split(line, " ")
-		dir := split[0]
-		amount, _ := strconv.Atoi(split[1])
-		color := split[2]
-		for i := 0; i < amount; i++ {
-			switch dir {
+		// P1
+		dir1 := split[0]
+		dist1, _ := strconv.Atoi(split[1])
+		for i := 0; i < dist1; i++ {
+			switch dir1 {
 			case "D":
-				curPos.y++
+				curPos1.y++
 			case "U":
-				curPos.y--
+				curPos1.y--
 			case "R":
-				curPos.x++
+				curPos1.x++
 			case "L":
-				curPos.x--
+				curPos1.x--
 			}
-			grid[curPos] = color
+			turningPos1 = append(turningPos1, curPos1)
 		}
+		// P2
+		color := split[2][2 : len(split[2])-1]
+		dist2, _ := (strconv.ParseInt(color[:5], 16, 0))
+		dir2 := color[5]
+		switch dir2 {
+		case '0':
+			curPos2.x += int(dist2)
+		case '1':
+			curPos2.y += int(dist2)
+		case '2':
+			curPos2.x -= int(dist2)
+		case '3':
+			curPos2.y -= int(dist2)
+		}
+		turningPos2 = append(turningPos2, curPos2)
 	}
 
-	for pos := range grid {
-		fmt.Println(pos)
-	}
-	fill(grid, Pos{1, 1})
-	fmt.Println("Sol 1", len(grid))
-
-	// // Part 2
-	// fmt.Println("Sol 2:", 0)
+	fmt.Println("Sol 1", calcArea(turningPos1)+1)
+	fmt.Println("Sol 2:", calcArea(turningPos2)+1)
 }
