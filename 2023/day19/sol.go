@@ -20,6 +20,11 @@ type WorkFlow struct {
 }
 
 type Part = map[string]int
+type PartRange struct {
+	lower int 
+	upper int
+}
+type PartRanges = map[string]PartRange
 
 func parseRule(line string, workFlows map[string]*WorkFlow) {
 	split1 := strings.SplitN(line, "{", 2)
@@ -64,12 +69,6 @@ func makePart(part Part, workFlow WorkFlow) int {
 	}
 	return 0
 }
-
-type PartRange struct {
-	lower int 
-	upper int
-}
-type PartRanges = map[string]PartRange
 
 func makePartRanges(ranges PartRanges, workFlow WorkFlow) int {
 	if workFlow.name == "A" {
