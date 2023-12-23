@@ -17,7 +17,6 @@ type Rule struct {
 type WorkFlow struct {
 	name  string
 	rules []Rule
-	final bool
 }
 
 type Part = map[string]int
@@ -44,12 +43,10 @@ func parseRule(line string, workFlows map[string]*WorkFlow) {
 
 func makePart(part Part, workFlow WorkFlow) int {
 	// Return Result
-	if workFlow.final {
-		if workFlow.name == "A" {
-			return part["x"] + part["m"] + part["a"] + part["s"]
-		} else 	{
-			return 0
-		}
+	if workFlow.name == "A" {
+		return part["x"] + part["m"] + part["a"] + part["s"]
+	} else  if workFlow.name == "R" {
+		return 0
 	}
 	// Check rules
 	for _, rule := range workFlow.rules {
@@ -68,6 +65,43 @@ func makePart(part Part, workFlow WorkFlow) int {
 	return 0
 }
 
+type PartRange struct {
+	lower int 
+	upper int
+}
+type PartRanges = map[string]PartRange
+
+func makePartRanges(ranges PartRanges, workFlow WorkFlow) int {
+	if workFlow.name == "A" {
+		product := 1
+		for _, partRange := range ranges {
+			product *= partRange.upper - partRange.lower + 1
+		}
+		return product
+	} else if workFlow.name == "R" {
+		return 0
+	}
+
+	total := 0
+	for _, rule := range workFlow.rules {
+		newRanges := PartRanges{"x": ranges["x"], "m": ranges["m"], "a": ranges["a"], "s": ranges["s"]}
+		pr := ranges[rule.field]
+		if rule.field == "" {
+			total += makePartRanges(newRanges, *rule.dest)
+		} else if rule.less {
+			newRanges[rule.field] = PartRange{pr.lower, rule.value - 1}
+			ranges[rule.field] = PartRange{rule.value, pr.upper}
+			total += makePartRanges(newRanges, *rule.dest)
+		} else {
+			newRanges[rule.field] = PartRange{rule.value + 1, pr.upper}
+			ranges[rule.field] = PartRange{pr.lower, rule.value}
+			total += makePartRanges(newRanges, *rule.dest)
+		}
+	}
+	return total
+}
+	
+
 func main() {
 	input, _ := os.ReadFile("in.txt")
 
@@ -78,31 +112,34 @@ func main() {
 
 	// Fill WorkFlows
 	workFlows := map[string]*WorkFlow{}
+	workFlows["A"] = &WorkFlow{"A", []Rule{}}
+	workFlows["R"] = &WorkFlow{"R", []Rule{}}
 	for _, line := range rule_lines {
 		split := strings.SplitN(line, "{", 2)
-		workFlows[split[0]] = &WorkFlow{split[0], make([]Rule, 0), false}
+		workFlows[split[0]] = &WorkFlow{split[0], make([]Rule, 0)}
 	}
-
-	workFlows["A"] = &WorkFlow{"A", []Rule{}, true}
-	workFlows["R"] = &WorkFlow{"R", []Rule{}, true}
-
 	// Add Rules
 	for _, line := range rule_lines {
 		parseRule(line, workFlows)
 	}
 
-	// 
+	// Part 1
 	sumP1 := 0
 	for _, line := range part_lines {
-		var part = Part{}
 		var x, m, a, s int
 		fmt.Sscanf(line, "{x=%d,m=%d,a=%d,s=%d", &x, &m, &a, &s)
-		part["x"] = x
-		part["m"] = m
-		part["a"] = a
-		part["s"] = s
-		sumP1 += makePart(part, *workFlows["in"])
+		sumP1 += makePart(Part{"x":x, "m":m, "a":a, "s":s}, *workFlows["in"])
 	}
 	fmt.Println("Sol 1:", sumP1)
 
+
+	// Part 2
+	sumP2 := makePartRanges(PartRanges{
+		"x": {1, 4000}, 
+		"m": {1, 4000}, 
+		"a": {1, 4000}, 
+		"s": {1, 4000}}, 
+		*workFlows["in"],
+	)
+	fmt.Println("Sol 2:", sumP2)
 }
