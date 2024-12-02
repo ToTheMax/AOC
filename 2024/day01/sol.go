@@ -8,14 +8,6 @@ import (
 	"strings"
 )
 
-func score(text string) int {
-	score := 0
-	for _, line := range strings.Split(text, "\n") {
-		score += int(line[0]-'0')*10 + int(line[len(line)-1]-'0')
-	}
-	return score
-}
-
 func main() {
 	input, _ := os.ReadFile("in.txt")
 	lines := strings.Split(string(input), "\n")
