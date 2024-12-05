@@ -8,19 +8,13 @@ import (
 )
 
 func checkRule(rules map[int][]int, page_numbers []int, page_indices map[int]int) bool {
-	// Loop over page numnbers
-	// for page_number, page_number_index := range page_indices {
 	for _, page_number := range page_numbers {
 		for _, after := range rules[page_number] {
-			if _, exists := page_indices[after]; !exists {
-				continue
-			}
-			if page_indices[page_number] > page_indices[after] {
+			if i, ok := page_indices[after]; ok && page_indices[page_number] > i {
 				return false
 			}
 		}
 	}
-	fmt.Println("TRUE")
 	return true
 }
 
@@ -33,9 +27,8 @@ func main() {
 	rules := make(map[int][]int)
 	for _, line := range rule_lines {
 		nums := strings.Split(line, "|")
-		var left, right int
-		left, _ = strconv.Atoi(nums[0])
-		right, _ = strconv.Atoi(nums[1])
+		left, _ := strconv.Atoi(nums[0])
+		right, _ := strconv.Atoi(nums[1])
 		rules[left] = append(rules[left], right)
 	}
 
@@ -59,4 +52,5 @@ func main() {
 		}
 	}
 	fmt.Println("Sol 1:", scoreP1)
+	fmt.Println("Sol 2:", scoreP2)
 }
