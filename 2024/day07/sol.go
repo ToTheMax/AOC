@@ -18,6 +18,8 @@ const (
 func solveEquation(equation []int, operators []Operator, value int, target int) bool {
 	if len(equation) == 0 {
 		return value == target
+	} else if value > target {
+		return false
 	}
 
 	solved := false
