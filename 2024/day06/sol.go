@@ -17,7 +17,6 @@ type Pos struct {
 
 
 func main() {
-	// Read input as single string
 	input, _ := os.ReadFile("in.txt")
 	lines := strings.Split(string(input), "\n")
 
