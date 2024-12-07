@@ -56,7 +56,6 @@ func main() {
 
 	// Count obstructions with a loop
 	count := 0
-	fmt.Println("Trying obstructions :", len(obstructions))
 	for _, obstruction := range obstructions {
 		guard := Guard{guardPos, 0, -1}
 		seen := make(map[Guard]bool)
