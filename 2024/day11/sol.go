@@ -7,37 +7,52 @@ import (
 	"strings"
 )
 
+type State struct {
+	stone  int
+	blinks int
+}
+
+func count_stones(stone int, blinks int, cache map[State]int) int {
+	if blinks == 0 {
+		return 1
+	}
+	if cached_blinks, ok := cache[State{stone, blinks}]; ok {
+		return cached_blinks
+	} else {
+		stoneStr := strconv.Itoa(stone)
+		result := 0
+		if stone == 0 {
+			result = count_stones(1, blinks-1, cache)
+		} else if len(stoneStr)%2 == 0 {
+			leftStone, _ := strconv.Atoi(stoneStr[:len(stoneStr)/2])
+			rightStone, _ := strconv.Atoi(stoneStr[len(stoneStr)/2:])
+			result = count_stones(leftStone, blinks-1, cache) + count_stones(rightStone, blinks-1, cache)
+		} else {
+			result = count_stones(stone*2024, blinks-1, cache)
+		}
+		cache[State{stone, blinks}] = result
+		return result
+	}
+}
+
+func solve(stones []int, blinks int) int {
+	cache := make(map[State]int)
+	total := 0
+	for _, stone := range stones {
+		total += count_stones(stone, blinks, cache)
+	}
+	return total
+}
+
 func main() {
 	input, _ := os.ReadFile("in.txt")
 	arrangement := string(input)
 
-	// convert to ints
-	stonesStr := strings.Split(arrangement, " ")
-	stones := make([]int, len(stonesStr))
-	for i, stone := range stonesStr {
-		stones[i], _ = strconv.Atoi(stone)
+	stones := make([]int, len(strings.Split(arrangement, " ")))
+	for i, s := range strings.Split(arrangement, " ") {
+		stones[i], _ = strconv.Atoi(s)
 	}
 
-	// Blink
-	for b := 0; b < 25; b++ {
-		newStones := make([]int, len(stones)*2)
-		newStonesIndex := 0
-		// fmt.Println("After", b, "blinks", len(stones))
-		for _, stone := range stones {
-			stoneStr := strconv.Itoa(stone)
-			if stone == 0 {
-				newStones[newStonesIndex] = 1
-			} else if len(stoneStr)%2 == 0 {
-				newStones[newStonesIndex], _ = strconv.Atoi(stoneStr[:len(stoneStr)/2])
-				newStones[newStonesIndex+1], _ = strconv.Atoi(stoneStr[len(stoneStr)/2:])
-				newStonesIndex++
-			} else {
-				newStones[newStonesIndex] = stone * 2024
-			}
-			newStonesIndex++
-		}
-		stones = newStones[:newStonesIndex]
-	}
-
-	fmt.Println("Sol 1:", len(stones))
+	fmt.Println("Sol 1:", solve(stones, 25))
+	fmt.Println("Sol 2:", solve(stones, 75))
 }
