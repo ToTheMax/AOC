@@ -14,7 +14,7 @@ type Prize struct {
 	x, y int
 }
 
-func solve_machine(buttonA Button, buttonB Button, prize Prize, part int) int {
+func solve(buttonA Button, buttonB Button, prize Prize, part int) int {
 	if part == 2 {
 		prize.x += 10000000000000
 		prize.y += 10000000000000
@@ -58,8 +58,8 @@ func main() {
 		fmt.Sscanf(lines[1], "Button B: X+%d, Y+%d", &buttonB.dx, &buttonB.dy)
 		fmt.Sscanf(lines[2], "Prize: X=%d, Y=%d", &prize.x, &prize.y)
 
-		solP1 += solve_machine(buttonA, buttonB, prize, 1)
-		solP2 += solve_machine(buttonA, buttonB, prize, 2)
+		solP1 += solve(buttonA, buttonB, prize, 1)
+		solP2 += solve(buttonA, buttonB, prize, 2)
 	}
 
 	fmt.Println("Sol 1:", solP1)
