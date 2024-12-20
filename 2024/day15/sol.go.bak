@@ -1,0 +1,92 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"strings"
+)
+
+type Pos struct {
+	x, y int
+}
+
+func tryMove(movement rune, robotPos Pos, stepsize int, boxes map[Pos]bool, walls map[Pos]bool) Pos {
+	var dx, dy int
+	switch movement {
+	case '^':
+		dx, dy = 0, -stepsize
+	case '>':
+		dx, dy = stepsize, 0
+	case 'v':
+		dx, dy = 0, stepsize
+	case '<':
+		dx, dy = -stepsize, 0
+	}
+
+	newPos := Pos{robotPos.x + dx, robotPos.y + dy}
+	// If the new position is a wall skip movement
+	if walls[newPos] {
+		return robotPos
+	}
+
+	// If new position is a box, check if it/they can be moved
+	if boxes[newPos] {
+		stackedBoxes := []Pos{newPos}
+		currentPos := newPos
+		for {
+			nextPos := Pos{currentPos.x + dx, currentPos.y + dy}
+			if boxes[nextPos] {
+				stackedBoxes = append(stackedBoxes, nextPos)
+				currentPos = nextPos
+			} else if walls[nextPos] {
+				return robotPos
+			} else {
+				break
+			}
+		}
+		// Move boxes
+		delete(boxes, newPos)
+		for _, pos := range stackedBoxes {
+			newBoxPos := Pos{pos.x + dx, pos.y + dy}
+			boxes[newBoxPos] = true
+		}
+	}
+
+	return newPos
+}
+
+func main() {
+	input, _ := os.ReadFile("in.txt")
+	inputs := strings.Split(string(input), "\n\n")
+
+	grid := strings.Split(inputs[0], "\n")
+	movements := strings.ReplaceAll(inputs[1], "\n", "")
+
+	var robotPos Pos
+	boxes := make(map[Pos]bool)
+	walls := make(map[Pos]bool)
+	for y, row := range grid {
+		for x, cell := range row {
+			if cell == '@' {
+				robotPos = Pos{x * 2, y * 2}
+			} else if cell == 'O' {
+				boxes[Pos{x * 2, y * 2}] = true
+				boxes[Pos{x*2 + 1, y * 2}] = true
+			} else if cell == '#' {
+				walls[Pos{x * 2, y * 2}] = true
+				walls[Pos{x*2 + 1, y * 2}] = true
+			}
+		}
+	}
+
+	for _, movement := range movements {
+		robotPos = tryMove(movement, robotPos, 2, boxes, walls)
+	}
+
+	solP1 := 0
+	for pos := range boxes {
+		solP1 += pos.x/2 + pos.y/2*100
+	}
+	fmt.Println("Sol 1:", solP1)
+
+}
