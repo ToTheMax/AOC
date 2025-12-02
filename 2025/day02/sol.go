@@ -7,18 +7,6 @@ import (
 	"strings"
 )
 
-type Direction int
-
-const (
-	Left Direction = iota
-	Right
-)
-
-type Rotation struct {
-	Number    int
-	Direction Direction
-}
-
 func main() {
 	input, _ := os.ReadFile("in.txt")
 	single_line := strings.ReplaceAll(string(input), "\n", "")
